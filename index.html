@@ -3,184 +3,1041 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lernplattform</title>
+<title>Sparq</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#0f1115;
-  --panel:#171a21;
-  --panel2:#1f2430;
-  --text:#e8ecf1;
-  --muted:#a9b2c0;
-  --border:#2b3242;
+/* ── Tokens ─────────────────────────────────────────────────────────────── */
+:root {
+  --bg:          #0b0e18;
+  --sidebar:     #0f1320;
+  --panel:       #151b2e;
+  --panel2:      #1c2440;
+  --border:      #232d4a;
+  --border-hi:   #2d3a5c;
+  --text:        #edf0fa;
+  --muted:       #6d7a99;
+  --accent:      #00d4aa;
+  --accent-dim:  rgba(0,212,170,.1);
+  --accent-glow: rgba(0,212,170,.22);
+  --danger:      #ff6b6b;
+  --danger-dim:  rgba(255,107,107,.12);
+  --sidebar-w:   240px;
 }
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Inter,Segoe UI,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  display:flex;
-  height:100vh;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  display: flex; height: 100vh; overflow: hidden;
+  font-size: 15px; line-height: 1.6;
 }
-nav{
-  width:250px;
-  background:var(--panel);
-  border-right:1px solid var(--border);
-  padding:18px;
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w); background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 20px 12px; flex-shrink: 0;
 }
-nav h3{
-  margin-top:0;
+.logo { display: flex; align-items: center; gap: 10px; padding: 6px 10px 22px; }
+.logo-mark {
+  width: 34px; height: 34px; background: var(--accent);
+  border-radius: 9px; display: flex; align-items: center;
+  justify-content: center; font-size: 17px; flex-shrink: 0;
 }
-nav button, .action{
-  width:100%;
-  border:none;
-  border-radius:10px;
-  padding:12px;
-  margin:5px 0;
-  background:var(--panel2);
-  color:var(--text);
-  cursor:pointer;
+.logo-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem; font-weight: 700; letter-spacing: -0.03em;
 }
-nav button:hover,.action:hover{
-  filter:brightness(1.1);
+.nav-group-label {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--muted);
+  padding: 0 10px; margin-bottom: 5px;
 }
-main{
-  flex:1;
-  padding:24px;
-  overflow:auto;
+.nav-btn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; border: none; background: transparent;
+  color: var(--muted); padding: 9px 10px; border-radius: 8px;
+  cursor: pointer; font-family: 'Inter', sans-serif;
+  font-size: 0.875rem; font-weight: 500; text-align: left;
+  transition: background 0.15s, color 0.15s;
+  margin-bottom: 2px; position: relative;
 }
-.section{display:none}
-.section.active{display:block}
-input,textarea{
-  width:100%;
-  background:var(--panel);
-  border:1px solid var(--border);
-  color:var(--text);
-  border-radius:10px;
-  padding:12px;
-  margin:8px 0;
+.nav-btn:hover { background: var(--panel2); color: var(--text); }
+.nav-btn.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+.nav-btn.active::before {
+  content: ''; position: absolute;
+  left: 0; top: 22%; bottom: 22%;
+  width: 3px; background: var(--accent);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 10px var(--accent-glow);
 }
-textarea{min-height:120px}
-.card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:14px;
-  margin-top:10px;
-  box-shadow:0 4px 12px rgba(0,0,0,.2);
+.nav-icon { font-size: 0.95rem; width: 20px; text-align: center; }
+.sidebar-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+.sidebar-bottom { margin-top: auto; }
+#importFile { display: none; }
+
+/* ── Main ────────────────────────────────────────────────────────────────── */
+.main { flex: 1; overflow-y: auto; padding: 36px 40px; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+.page-header { margin-bottom: 28px; }
+.page-header h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em;
 }
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px;
+.page-header p { color: var(--muted); font-size: 0.875rem; margin-top: 3px; }
+
+/* ── Stats ───────────────────────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
 }
-.stat{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:18px;
+.stat-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px 20px; transition: border-color 0.2s;
 }
-h2{margin-top:0}
-.small{color:var(--muted);font-size:.9rem}
+.stat-card:hover { border-color: var(--border-hi); }
+.stat-num {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.9rem; font-weight: 700; color: var(--accent);
+  letter-spacing: -0.05em; line-height: 1;
+}
+.stat-label { color: var(--muted); font-size: 0.82rem; font-weight: 500; margin-top: 7px; }
+
+/* ── Last session (dashboard) ────────────────────────────────────────────── */
+.session-card {
+  margin-top: 20px; max-width: 340px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 20px;
+}
+.session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.session-badge { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent); }
+.session-date  { font-size: 0.78rem; color: var(--muted); }
+.session-result { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; }
+.session-filter { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+/* ── Form card ───────────────────────────────────────────────────────────── */
+.form-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px; margin-bottom: 28px;
+}
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block; font-size: 0.75rem; font-weight: 600;
+  color: var(--muted); letter-spacing: 0.05em;
+  text-transform: uppercase; margin-bottom: 6px;
+}
+
+/* ── Inputs ──────────────────────────────────────────────────────────────── */
+input:not([type="file"]), textarea, select {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  color: var(--text); border-radius: 10px; padding: 11px 14px;
+  font-family: 'Inter', sans-serif; font-size: 0.875rem;
+  outline: none; transition: border-color 0.18s, box-shadow 0.18s;
+}
+input:not([type="file"]):focus, textarea:focus, select:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim);
+}
+textarea { min-height: 110px; resize: vertical; }
+select {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236d7a99' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  background-color: var(--bg); padding-right: 36px; cursor: pointer;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: none; border-radius: 9px; padding: 10px 18px;
+  font-family: 'Inter', sans-serif; font-size: 0.875rem;
+  font-weight: 600; cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-primary  { background: var(--accent); color: #0a0d16; }
+.btn-primary:not(:disabled):hover  { filter: brightness(1.08); }
+.btn-secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:not(:disabled):hover { filter: brightness(1.15); }
+.btn-correct { flex: 1; background: rgba(0,212,170,.12); color: var(--accent); border: 1px solid rgba(0,212,170,.3); }
+.btn-correct:hover { background: rgba(0,212,170,.22); }
+.btn-wrong   { flex: 1; background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(255,107,107,.3); }
+.btn-wrong:hover   { background: rgba(255,107,107,.22); }
+
+/* delete × */
+.btn-delete {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); border-radius: 7px; cursor: pointer;
+  font-size: 1.1rem; line-height: 1;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.btn-delete:hover { background: var(--danger-dim); color: var(--danger); border-color: rgba(255,107,107,.35); }
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 18px;
+  transition: border-color 0.18s, transform 0.15s;
+}
+.card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.card-name  { font-weight: 600; font-size: 0.9rem; }
+.card-count { color: var(--muted); font-size: 0.78rem; margin-top: 2px; }
+.fc-front   { font-weight: 600; font-size: 0.9rem; flex: 1; }
+.fc-divider { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+.fc-back    { font-size: 0.85rem; color: var(--muted); line-height: 1.55; }
+.fc-tag {
+  display: inline-block; margin-top: 10px;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--accent);
+  background: var(--accent-dim); padding: 2px 7px; border-radius: 4px;
+}
+.quiz-badge { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
+.quiz-title { font-weight: 600; font-size: 0.9rem; }
+.quiz-meta  { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+
+/* ── Filter bar ──────────────────────────────────────────────────────────── */
+.filter-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.filter-bar select { width: auto; flex: 1; max-width: 260px; }
+.filter-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.empty { text-align: center; padding: 56px 24px; color: var(--muted); }
+.empty-icon { font-size: 2.2rem; margin-bottom: 12px; }
+.empty-text { font-size: 0.875rem; }
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+.toast-wrap {
+  position: fixed; bottom: 24px; right: 24px;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 9999; pointer-events: none;
+}
+.toast {
+  background: var(--panel2); border: 1px solid var(--border-hi);
+  border-left: 3px solid var(--accent); color: var(--text);
+  padding: 12px 16px; border-radius: 10px; font-size: 0.855rem;
+  font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  animation: toastIn 0.2s ease; max-width: 260px;
+}
+.toast.error { border-left-color: var(--danger); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.hint { font-size: 0.82rem; color: var(--muted); margin-bottom: 12px; }
+
+/* ── Lernmodus: Setup ────────────────────────────────────────────────────── */
+.learn-setup { max-width: 520px; }
+.learn-filter-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.learn-option {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; background: var(--panel); border: 2px solid var(--border);
+  border-radius: 12px; cursor: pointer; transition: border-color 0.15s;
+}
+.learn-option:hover:not(.disabled) { border-color: var(--border-hi); }
+.learn-option.selected { border-color: var(--accent); background: var(--accent-dim); }
+.learn-option.disabled { opacity: 0.4; cursor: not-allowed; }
+.learn-option-name  { font-weight: 600; font-size: 0.9rem; }
+.learn-option-count { color: var(--muted); font-size: 0.82rem; }
+
+/* ── Lernmodus: Study ────────────────────────────────────────────────────── */
+.learn-study { max-width: 560px; margin: 0 auto; }
+.progress-wrap { margin-bottom: 24px; }
+.progress-meta { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; }
+.progress-bar  { height: 4px; background: var(--panel2); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s ease; }
+
+.flip-wrap {
+  perspective: 1200px; height: 240px; margin-bottom: 24px;
+  cursor: pointer; user-select: none;
+}
+.flip-inner {
+  width: 100%; height: 100%; position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.flip-inner.flipped { transform: rotateY(180deg); }
+.flip-front, .flip-back {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 18px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 28px; text-align: center; gap: 10px;
+}
+.flip-back { transform: rotateY(180deg); border-color: var(--border-hi); }
+.flip-front-text { font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 600; }
+.flip-back-text  { font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
+.flip-hint { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.learn-actions { display: flex; gap: 12px; }
+
+/* ── Results ─────────────────────────────────────────────────────────────── */
+.results-card {
+  max-width: 520px; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 20px; padding: 40px 36px; text-align: center;
+}
+.results-score {
+  font-family: 'Space Grotesk', sans-serif; font-size: 4rem; font-weight: 700;
+  color: var(--accent); letter-spacing: -0.05em; line-height: 1;
+}
+.results-label { color: var(--muted); font-size: 0.9rem; margin-top: 8px; }
+.results-comparison { margin: 20px 0; padding: 13px 18px; border-radius: 10px; font-size: 0.875rem; font-weight: 500; }
+.results-comparison.better { background: var(--accent-dim); color: var(--accent); }
+.results-comparison.worse  { background: var(--danger-dim); color: var(--danger); }
+.results-comparison.same   { background: var(--panel2); color: var(--muted); }
+.results-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+
+/* ── Quiz Player ─────────────────────────────────────────────────────────── */
+.quiz-player { max-width: 600px; }
+.quiz-player-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.quiz-player-counter { font-size: 0.8rem; color: var(--muted); }
+.quiz-question-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.2rem; font-weight: 600; line-height: 1.45;
+  letter-spacing: -0.02em; margin: 20px 0;
+}
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-option {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  text-align: left; background: var(--panel); border: 1px solid var(--border);
+  color: var(--text); border-radius: 10px; padding: 13px 16px;
+  font-family: 'Inter', sans-serif; font-size: 0.875rem;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--border-hi); }
+.quiz-option:disabled { cursor: default; }
+.quiz-option.correct { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.quiz-option.wrong   { background: var(--danger-dim); border-color: rgba(255,107,107,.4); color: var(--danger); }
+.quiz-option.dim     { opacity: 0.38; }
+.quiz-option-letter {
+  width: 26px; height: 26px; flex-shrink: 0; background: var(--panel2);
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700;
+}
+.quiz-option.correct .quiz-option-letter { background: var(--accent); color: #0a0d16; }
+.quiz-option.wrong   .quiz-option-letter { background: var(--danger);  color: #fff; }
+.quiz-weiter { margin-top: 20px; }
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hi); }
 </style>
 </head>
 <body>
-<nav>
-<h3>📚 Lernplattform</h3>
-<button onclick="show('dashboard')">Dashboard</button>
-<button onclick="show('subjects')">Fächer</button>
-<button onclick="show('flashcards')">Lernkarten</button>
-<button onclick="show('quiz')">Quiz</button>
-<hr style="border-color:#2b3242">
-<button onclick="exportData()">Export</button>
-<input type="file" id="importFile">
-<button onclick="importData()">Import</button>
-</nav>
 
-<main>
-<div id="dashboard" class="section active">
-<h2>Dashboard</h2>
-<div id="stats" class="grid"></div>
-</div>
+<!-- ═══════════ SIDEBAR ═════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">⚡</div>
+    <span class="logo-text">Sparq</span>
+  </div>
 
-<div id="subjects" class="section">
-<h2>Fächer</h2>
-<input id="subjectName" placeholder="Fachname">
-<button class="action" onclick="addSubject()">Fach hinzufügen</button>
-<div id="subjectList"></div>
-</div>
+  <div class="nav-group-label">Lernen</div>
+  <button class="nav-btn active" onclick="show('dashboard', this)">
+    <span class="nav-icon">⊞</span> Dashboard
+  </button>
+  <button class="nav-btn" onclick="show('subjects', this)">
+    <span class="nav-icon">📖</span> Fächer
+  </button>
+  <button class="nav-btn" onclick="show('flashcards', this)">
+    <span class="nav-icon">🃏</span> Lernkarten
+  </button>
+  <button class="nav-btn" onclick="show('lernmodus', this)">
+    <span class="nav-icon">🎯</span> Lernmodus
+  </button>
+  <button class="nav-btn" onclick="show('quiz', this)">
+    <span class="nav-icon">✏️</span> Quiz
+  </button>
 
-<div id="flashcards" class="section">
-<h2>Lernkarten</h2>
-<input id="front" placeholder="Vorderseite">
-<textarea id="back" placeholder="Rückseite"></textarea>
-<button class="action" onclick="addCard()">Lernkarte speichern</button>
-<div id="cardList"></div>
-</div>
+  <hr class="sidebar-divider">
 
-<div id="quiz" class="section">
-<h2>Quiz</h2>
-<p class="small">Quiz-JSON von ChatGPT hier einfügen.</p>
-<textarea id="quizImport"></textarea>
-<button class="action" onclick="importQuiz()">Quiz importieren</button>
-<div id="quizList"></div>
-</div>
+  <div class="sidebar-bottom">
+    <div class="nav-group-label">Daten</div>
+    <button class="nav-btn" onclick="exportData()">
+      <span class="nav-icon">⬇</span> Exportieren
+    </button>
+    <input type="file" id="importFile" accept=".json">
+    <button class="nav-btn" onclick="document.getElementById('importFile').click()">
+      <span class="nav-icon">⬆</span> Importieren
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════ MAIN ════════════════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- Dashboard ─────────────────────────────────────────────────────────── -->
+  <div id="dashboard" class="section active">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>Dein Lernfortschritt auf einen Blick.</p>
+    </div>
+    <div id="stats"></div>
+  </div>
+
+  <!-- Fächer ────────────────────────────────────────────────────────────── -->
+  <div id="subjects" class="section">
+    <div class="page-header">
+      <h1>Fächer</h1>
+      <p>Organisiere deine Lerninhalte nach Fächern.</p>
+    </div>
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label" for="subjectName">Fachname</label>
+        <input id="subjectName" placeholder="z. B. Mathematik, Geschichte …">
+      </div>
+      <button class="btn btn-primary" onclick="addSubject()">Fach hinzufügen</button>
+    </div>
+    <div id="subjectList"></div>
+  </div>
+
+  <!-- Lernkarten ────────────────────────────────────────────────────────── -->
+  <div id="flashcards" class="section">
+    <div class="page-header">
+      <h1>Lernkarten</h1>
+      <p>Frage-Antwort-Karten für effektives Lernen.</p>
+    </div>
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label" for="front">Vorderseite</label>
+        <input id="front" placeholder="Frage oder Begriff …">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="back">Rückseite</label>
+        <textarea id="back" placeholder="Antwort oder Erklärung …"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="cardSubject">Fach (optional)</label>
+        <select id="cardSubject"><option value="">Kein Fach</option></select>
+      </div>
+      <button class="btn btn-primary" onclick="addCard()">Lernkarte speichern</button>
+    </div>
+    <div id="cardList"></div>
+  </div>
+
+  <!-- Lernmodus ─────────────────────────────────────────────────────────── -->
+  <div id="lernmodus" class="section">
+    <div class="page-header">
+      <h1>Lernmodus</h1>
+      <p>Lerne deine Karten mit dem Karteikarten-System.</p>
+    </div>
+    <!-- Wird vollständig von renderLearnMode() befüllt -->
+    <div id="learnContent"></div>
+  </div>
+
+  <!-- Quiz ──────────────────────────────────────────────────────────────── -->
+  <div id="quiz" class="section">
+    <div class="page-header">
+      <h1>Quiz</h1>
+      <p>JSON-Quiz importieren und spielen.</p>
+    </div>
+    <div id="quizFormWrap" class="form-card">
+      <p class="hint">Quiz-JSON von ChatGPT hier einfügen:</p>
+      <div class="form-group">
+        <textarea id="quizImport" placeholder='{ "title": "Mein Quiz", "questions": [{ "question": "...", "options": ["A","B","C","D"], "correct": 0 }] }'></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="importQuiz()">Quiz importieren</button>
+    </div>
+    <div id="quizList"></div>
+  </div>
+
 </main>
 
+<div class="toast-wrap" id="toastWrap"></div>
+
 <script>
-let db=JSON.parse(localStorage.getItem('lernarchiv')||'{"subjects":[],"flashcards":[],"quizzes":[]}');
+/* ═══════════════════════════════════════════════════════════════════════════
+   DATENMODELL
+   {
+     subjects:   [{ id, name }],
+     flashcards: [{ id, front, back, subjectId }],
+     quizzes:    [{ title, questions: [{ question, options[], correct }] }],
+     sessions:   [{ id, date, filter, correct, total }]
+   }
+   filter: 'all' | 'none' | <subjectId>
+═══════════════════════════════════════════════════════════════════════════ */
 
-function save(){localStorage.setItem('lernarchiv',JSON.stringify(db));render();}
-function show(id){
- document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
- document.getElementById(id).classList.add('active');
-}
-function addSubject(){
- let n=subjectName.value.trim();
- if(!n)return;
- db.subjects.push({name:n});
- subjectName.value='';
- save();
-}
-function addCard(){
- let f=front.value.trim(), b=back.value.trim();
- if(!f||!b)return;
- db.flashcards.push({front:f,back:b});
- front.value=''; back.value='';
- save();
-}
-function importQuiz(){
- try{
-   let q=JSON.parse(document.getElementById('quizImport').value);
-   db.quizzes.push(q);
-   save();
-   alert('Importiert');
- }catch(e){alert('Ungültiges JSON');}
-}
-function exportData(){
- const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
- const a=document.createElement('a');
- a.href=URL.createObjectURL(blob);
- a.download='lernarchiv.json';
- a.click();
-}
-function importData(){
- const f=document.getElementById('importFile').files[0];
- if(!f)return;
- const r=new FileReader();
- r.onload=()=>{db=JSON.parse(r.result);save();};
- r.readAsText(f);
-}
-function render(){
- stats.innerHTML=`
- <div class="stat"><h3>${db.subjects.length}</h3><div>Fächer</div></div>
- <div class="stat"><h3>${db.flashcards.length}</h3><div>Lernkarten</div></div>
- <div class="stat"><h3>${db.quizzes.length}</h3><div>Quizze</div></div>`;
+let db = JSON.parse(
+  localStorage.getItem('lernarchiv') ||
+  '{"subjects":[],"flashcards":[],"quizzes":[],"sessions":[]}'
+);
+if (!db.sessions) db.sessions = [];
 
- subjectList.innerHTML=db.subjects.map(s=>`<div class="card">${s.name}</div>`).join('');
- cardList.innerHTML=db.flashcards.map(c=>`<div class="card"><strong>${c.front}</strong><hr>${c.back}</div>`).join('');
- quizList.innerHTML=db.quizzes.map((q,i)=>`<div class="card">Quiz ${i+1}: ${q.title||'Ohne Titel'}</div>`).join('');
+/* ── UI-State: Lernmodus ─────────────────────────────────────────────────── */
+let learnState = {
+  mode:    'setup',  // 'setup' | 'studying' | 'results'
+  filter:  'all',
+  cards:   [],
+  index:   0,
+  flipped: false,
+  correct: 0,
+};
+
+/* ── UI-State: Quiz-Spieler ──────────────────────────────────────────────── */
+let quizState = {
+  mode:      'list',  // 'list' | 'playing' | 'done'
+  quizIndex: -1,
+  qIndex:    0,
+  correct:   0,
+  selected:  null,    // null | Antwort-Index
+};
+
+/* ── Persistenz ──────────────────────────────────────────────────────────── */
+function save() {
+  localStorage.setItem('lernarchiv', JSON.stringify(db));
+  render();
 }
+
+/* ── Navigation ──────────────────────────────────────────────────────────── */
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+/* ── Fächer ──────────────────────────────────────────────────────────────── */
+function addSubject() {
+  const n = subjectName.value.trim();
+  if (!n) return;
+  db.subjects.push({ id: crypto.randomUUID(), name: n });
+  subjectName.value = '';
+  save();
+}
+
+function deleteSubject(id) {
+  db.subjects = db.subjects.filter(s => s.id !== id);
+  db.flashcards = db.flashcards.map(c =>
+    c.subjectId === id ? { ...c, subjectId: null } : c
+  );
+  if (learnState.filter === id) learnState.filter = 'all';
+  save();
+}
+
+/* ── Lernkarten ──────────────────────────────────────────────────────────── */
+function addCard() {
+  const f = front.value.trim(), b = back.value.trim();
+  if (!f || !b) return;
+  const subjectId = document.getElementById('cardSubject').value || null;
+  db.flashcards.push({ id: crypto.randomUUID(), front: f, back: b, subjectId });
+  front.value = ''; back.value = '';
+  save();
+}
+
+function deleteCard(id) {
+  db.flashcards = db.flashcards.filter(c => c.id !== id);
+  save();
+}
+
+/* ── Quiz Import ─────────────────────────────────────────────────────────── */
+function importQuiz() {
+  try {
+    const q = JSON.parse(document.getElementById('quizImport').value);
+    db.quizzes.push(q);
+    save();
+    toast('Quiz importiert');
+  } catch(e) {
+    toast('Ungültiges JSON', 'error');
+  }
+}
+
+/* ── Export / Import ─────────────────────────────────────────────────────── */
+function exportData() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sparq-backup.json';
+  a.click();
+}
+function importData() {
+  const f = document.getElementById('importFile').files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      db = JSON.parse(r.result);
+      if (!db.sessions) db.sessions = [];
+      save();
+      toast('Daten importiert');
+    } catch(e) {
+      toast('Ungültige Backup-Datei', 'error');
+    }
+  };
+  r.readAsText(f);
+}
+document.getElementById('importFile').addEventListener('change', importData);
+
+/* ── Lernmodus: Actions ──────────────────────────────────────────────────── */
+function selectLearnFilter(filter) {
+  learnState.filter = filter;
+  renderLearnMode();
+}
+
+function startLearn() {
+  // Kartenmenge nach Filter aufbauen
+  let cards = [...db.flashcards];
+  if (learnState.filter === 'none')       cards = cards.filter(c => !c.subjectId);
+  else if (learnState.filter !== 'all')   cards = cards.filter(c => c.subjectId === learnState.filter);
+  if (!cards.length) return;
+
+  // Fisher-Yates-Shuffle
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+
+  learnState = { ...learnState, mode: 'studying', cards, index: 0, flipped: false, correct: 0 };
+  renderLearnMode();
+}
+
+function flipCard() {
+  if (learnState.mode !== 'studying') return;
+  learnState.flipped = !learnState.flipped;
+
+  // Direkte DOM-Manipulation für flüssige CSS-Transition
+  const inner = document.querySelector('.flip-inner');
+  if (inner) inner.classList.toggle('flipped', learnState.flipped);
+
+  const actions = document.querySelector('.learn-actions');
+  if (actions) actions.style.visibility = learnState.flipped ? 'visible' : 'hidden';
+}
+
+function markCard(correct) {
+  if (!learnState.flipped) return; // Karte muss zuerst umgedreht werden
+  if (correct) learnState.correct++;
+  learnState.index++;
+  learnState.flipped = false;
+
+  if (learnState.index >= learnState.cards.length) {
+    finishLearnSession();
+  } else {
+    renderLearnMode();
+  }
+}
+
+function finishLearnSession() {
+  const session = {
+    id:      crypto.randomUUID(),
+    date:    new Date().toISOString(),
+    filter:  learnState.filter,
+    correct: learnState.correct,
+    total:   learnState.cards.length,
+  };
+  db.sessions.push(session);
+  learnState.mode = 'results';
+  save(); // → render() → renderLearnMode() zeigt Ergebnis-Screen
+}
+
+function restartLearn() {
+  // Mit demselben Filter nochmal starten
+  startLearn();
+}
+
+function resetLearn() {
+  learnState.mode   = 'setup';
+  learnState.cards  = [];
+  learnState.index  = 0;
+  learnState.correct = 0;
+  learnState.flipped = false;
+  renderLearnMode();
+}
+
+/* ── Quiz-Spieler: Actions ───────────────────────────────────────────────── */
+function startQuiz(i) {
+  const quiz = db.quizzes[i];
+  if (!quiz.questions || !quiz.questions.length) {
+    toast('Dieses Quiz hat keine spielbaren Fragen.', 'error');
+    return;
+  }
+  quizState = { mode: 'playing', quizIndex: i, qIndex: 0, correct: 0, selected: null };
+  renderQuizzes();
+}
+
+function selectAnswer(i) {
+  if (quizState.selected !== null) return; // bereits beantwortet
+  quizState.selected = i;
+  const q = db.quizzes[quizState.quizIndex].questions[quizState.qIndex];
+  if (i === q.correct) quizState.correct++;
+  renderQuizzes();
+}
+
+function nextQuestion() {
+  quizState.qIndex++;
+  quizState.selected = null;
+  if (quizState.qIndex >= db.quizzes[quizState.quizIndex].questions.length) {
+    quizState.mode = 'done';
+  }
+  renderQuizzes();
+}
+
+function exitQuiz() {
+  quizState = { mode: 'list', quizIndex: -1, qIndex: 0, correct: 0, selected: null };
+  renderQuizzes();
+}
+
+/* ── Hilfsfunktionen ─────────────────────────────────────────────────────── */
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function emptyState(icon, text) {
+  return `<div class="empty"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div></div>`;
+}
+function getSubjectName(id) {
+  const s = db.subjects.find(s => s.id === id);
+  return s ? s.name : '';
+}
+function getFilterCount(filter) {
+  if (filter === 'all')  return db.flashcards.length;
+  if (filter === 'none') return db.flashcards.filter(c => !c.subjectId).length;
+  return db.flashcards.filter(c => c.subjectId === filter).length;
+}
+function getFilterLabel(filter) {
+  if (filter === 'all')  return 'Alle Karten';
+  if (filter === 'none') return 'Kein Fach';
+  return getSubjectName(filter) || 'Unbekannt';
+}
+function getSessionComparison(current) {
+  // Letzte Session mit gleichem Filter (exkl. aktuelle)
+  const prev = db.sessions.slice(0, -1).reverse()
+    .find(s => s.filter === current.filter);
+  if (!prev) return null;
+  const diff = Math.round(
+    (current.correct / current.total - prev.correct / prev.total) * 100
+  );
+  if (diff > 0) return { type: 'better', diff };
+  if (diff < 0) return { type: 'worse', diff: Math.abs(diff) };
+  return { type: 'same' };
+}
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = type === 'error' ? 'toast error' : 'toast';
+  el.textContent = msg;
+  toastWrap.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RENDER-FUNKTIONEN
+══════════════════════════════════════════════════════════════════════════ */
+function render() {
+  renderStats();
+  renderSubjectDropdown();
+  renderSubjects();
+  renderFlashcards();
+  renderLearnMode();
+  renderQuizzes();
+}
+
+/* ── Dashboard ───────────────────────────────────────────────────────────── */
+function renderStats() {
+  const last = db.sessions.length ? db.sessions[db.sessions.length - 1] : null;
+  let sessionHtml = '';
+  if (last) {
+    const d   = new Date(last.date);
+    const pct = Math.round((last.correct / last.total) * 100);
+    const dStr = d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+    sessionHtml = `
+      <div class="session-card">
+        <div class="session-header">
+          <span class="session-badge">Letzte Session</span>
+          <span class="session-date">${dStr}</span>
+        </div>
+        <div class="session-result">${last.correct} / ${last.total} gewusst</div>
+        <div class="session-filter">${esc(getFilterLabel(last.filter))} · ${pct}%</div>
+      </div>`;
+  }
+  stats.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num">${db.subjects.length}</div><div class="stat-label">Fächer</div></div>
+      <div class="stat-card"><div class="stat-num">${db.flashcards.length}</div><div class="stat-label">Lernkarten</div></div>
+      <div class="stat-card"><div class="stat-num">${db.quizzes.length}</div><div class="stat-label">Quizze</div></div>
+    </div>
+    ${sessionHtml}`;
+}
+
+/* ── Fächer-Dropdown (Lernkarten-Formular) ───────────────────────────────── */
+function renderSubjectDropdown() {
+  const el = document.getElementById('cardSubject');
+  if (!el) return;
+  const current = el.value;
+  el.innerHTML = `<option value="">Kein Fach</option>` +
+    db.subjects.map(s =>
+      `<option value="${s.id}"${s.id === current ? ' selected' : ''}>${esc(s.name)}</option>`
+    ).join('');
+}
+
+/* ── Fächer-Liste ────────────────────────────────────────────────────────── */
+function renderSubjects() {
+  if (!db.subjects.length) {
+    subjectList.innerHTML = emptyState('📖', 'Noch keine Fächer. Füge dein erstes Fach hinzu.');
+    return;
+  }
+  subjectList.innerHTML = `<div class="card-grid">${
+    db.subjects.map(s => {
+      const count = db.flashcards.filter(c => c.subjectId === s.id).length;
+      return `<div class="card">
+        <div class="card-top">
+          <div>
+            <div class="card-name">${esc(s.name)}</div>
+            <div class="card-count">${count} Karte${count !== 1 ? 'n' : ''}</div>
+          </div>
+          <button class="btn-delete" onclick="deleteSubject('${s.id}')" title="Fach löschen">×</button>
+        </div>
+      </div>`;
+    }).join('')
+  }</div>`;
+}
+
+/* ── Lernkarten-Liste ────────────────────────────────────────────────────── */
+let fcFilterValue = 'all';
+
+function renderFlashcards() {
+  const filterHtml = `<div class="filter-bar">
+    <span class="filter-label">Filter</span>
+    <select onchange="fcFilterValue = this.value; render()">
+      <option value="all"${fcFilterValue === 'all' ? ' selected' : ''}>Alle Karten</option>
+      ${db.subjects.map(s =>
+        `<option value="${s.id}"${fcFilterValue === s.id ? ' selected' : ''}>${esc(s.name)}</option>`
+      ).join('')}
+      <option value="none"${fcFilterValue === 'none' ? ' selected' : ''}>Kein Fach</option>
+    </select>
+  </div>`;
+
+  let filtered = db.flashcards;
+  if (fcFilterValue === 'none')       filtered = db.flashcards.filter(c => !c.subjectId);
+  else if (fcFilterValue !== 'all')   filtered = db.flashcards.filter(c => c.subjectId === fcFilterValue);
+
+  const cardsHtml = filtered.length
+    ? `<div class="card-grid">${filtered.map(c => {
+        const sName = c.subjectId ? getSubjectName(c.subjectId) : null;
+        return `<div class="card">
+          <div class="card-top">
+            <div class="fc-front">${esc(c.front)}</div>
+            <button class="btn-delete" onclick="deleteCard('${c.id}')" title="Lernkarte löschen">×</button>
+          </div>
+          <hr class="fc-divider">
+          <div class="fc-back">${esc(c.back)}</div>
+          ${sName ? `<div class="fc-tag">${esc(sName)}</div>` : ''}
+        </div>`;
+      }).join('')}</div>`
+    : emptyState('🃏', db.flashcards.length
+        ? 'Keine Karten für diesen Filter.'
+        : 'Noch keine Lernkarten. Erstelle deine erste Karte.');
+
+  cardList.innerHTML = filterHtml + cardsHtml;
+}
+
+/* ── Lernmodus ───────────────────────────────────────────────────────────── */
+function renderLearnMode() {
+  if (learnState.mode === 'setup')    renderLearnSetup();
+  if (learnState.mode === 'studying') renderLearnStudy();
+  if (learnState.mode === 'results')  renderLearnResults();
+}
+
+function renderLearnSetup() {
+  const options = [
+    { value: 'all',  label: 'Alle Karten', count: getFilterCount('all') },
+    ...db.subjects.map(s => ({
+      value: s.id, label: s.name,
+      count: getFilterCount(s.id)
+    })),
+    { value: 'none', label: 'Kein Fach', count: getFilterCount('none') },
+  ];
+  const selectedCount = getFilterCount(learnState.filter);
+
+  learnContent.innerHTML = `
+    <div class="learn-setup">
+      <div class="learn-filter-options">
+        ${options.map(o => `
+          <div class="learn-option${learnState.filter === o.value ? ' selected' : ''}${o.count === 0 ? ' disabled' : ''}"
+               ${o.count > 0 ? `onclick="selectLearnFilter('${o.value}')"` : ''}>
+            <div class="learn-option-name">${esc(o.label)}</div>
+            <div class="learn-option-count">${o.count} Karte${o.count !== 1 ? 'n' : ''}</div>
+          </div>`).join('')}
+      </div>
+      <button class="btn btn-primary" onclick="startLearn()" ${selectedCount === 0 ? 'disabled' : ''}>
+        ▶ Lernmodus starten
+      </button>
+    </div>`;
+}
+
+function renderLearnStudy() {
+  const card  = learnState.cards[learnState.index];
+  const total = learnState.cards.length;
+  const idx   = learnState.index;
+  const pct   = Math.round((idx / total) * 100);
+
+  learnContent.innerHTML = `
+    <div class="learn-study">
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span>Karte ${idx + 1} von ${total}</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+
+      <div class="flip-wrap" onclick="flipCard()">
+        <div class="flip-inner${learnState.flipped ? ' flipped' : ''}">
+          <div class="flip-front">
+            <div class="flip-front-text">${esc(card.front)}</div>
+            <div class="flip-hint">Klicke zum Umdrehen</div>
+          </div>
+          <div class="flip-back">
+            <div class="flip-back-text">${esc(card.back)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="learn-actions" style="visibility:${learnState.flipped ? 'visible' : 'hidden'}">
+        <button class="btn btn-correct" onclick="markCard(true)">✅ Gewusst</button>
+        <button class="btn btn-wrong"   onclick="markCard(false)">❌ Nicht gewusst</button>
+      </div>
+    </div>`;
+}
+
+function renderLearnResults() {
+  const current = db.sessions[db.sessions.length - 1];
+  const pct  = Math.round((current.correct / current.total) * 100);
+  const comp = getSessionComparison(current);
+
+  let compHtml = '';
+  if (comp) {
+    if (comp.type === 'better')
+      compHtml = `<div class="results-comparison better">📈 +${comp.diff}% besser als letztes Mal</div>`;
+    else if (comp.type === 'worse')
+      compHtml = `<div class="results-comparison worse">📉 −${comp.diff}% schlechter als letztes Mal</div>`;
+    else
+      compHtml = `<div class="results-comparison same">↔ Gleich gut wie letztes Mal</div>`;
+  }
+
+  learnContent.innerHTML = `
+    <div class="results-card">
+      <div class="results-score">${pct}%</div>
+      <div class="results-label">${current.correct} von ${current.total} Karten gewusst</div>
+      ${compHtml}
+      <div class="results-actions">
+        <button class="btn btn-secondary" onclick="restartLearn()">Nochmal</button>
+        <button class="btn btn-primary"   onclick="resetLearn()">Anderer Filter</button>
+      </div>
+    </div>`;
+}
+
+/* ── Quiz ────────────────────────────────────────────────────────────────── */
+function renderQuizzes() {
+  const formWrap = document.getElementById('quizFormWrap');
+  if (!formWrap) return;
+
+  if (quizState.mode === 'list') {
+    formWrap.style.display = '';
+    if (!db.quizzes.length) {
+      quizList.innerHTML = emptyState('✏️', 'Noch kein Quiz. Importiere ein Quiz-JSON.');
+      return;
+    }
+    quizList.innerHTML = `<div class="card-grid">${
+      db.quizzes.map((q, i) => {
+        const canPlay = Array.isArray(q.questions) && q.questions.length > 0;
+        return `<div class="card">
+          <div class="quiz-badge">Quiz ${i + 1}</div>
+          <div class="quiz-title">${esc(q.title || 'Ohne Titel')}</div>
+          <div class="quiz-meta">${canPlay ? `${q.questions.length} Fragen` : 'Keine spielbaren Fragen'}</div>
+          ${canPlay
+            ? `<button class="btn btn-primary" style="margin-top:12px;width:100%" onclick="startQuiz(${i})">▶ Spielen</button>`
+            : ''}
+        </div>`;
+      }).join('')
+    }</div>`;
+
+  } else if (quizState.mode === 'playing') {
+    formWrap.style.display = 'none';
+    renderQuizPlayer();
+
+  } else if (quizState.mode === 'done') {
+    formWrap.style.display = 'none';
+    renderQuizDone();
+  }
+}
+
+function renderQuizPlayer() {
+  const quiz  = db.quizzes[quizState.quizIndex];
+  const q     = quiz.questions[quizState.qIndex];
+  const total = quiz.questions.length;
+  const pct   = Math.round((quizState.qIndex / total) * 100);
+  const isLast = quizState.qIndex === total - 1;
+
+  const optionsHtml = q.options.map((opt, i) => {
+    let cls = '';
+    if (quizState.selected !== null) {
+      if (i === q.correct)            cls = 'correct';
+      else if (i === quizState.selected) cls = 'wrong';
+      else                            cls = 'dim';
+    }
+    return `<button class="quiz-option ${cls}"
+              onclick="selectAnswer(${i})"
+              ${quizState.selected !== null ? 'disabled' : ''}>
+      <span class="quiz-option-letter">${'ABCD'[i]}</span>
+      <span>${esc(opt)}</span>
+    </button>`;
+  }).join('');
+
+  const weiterBtn = quizState.selected !== null
+    ? `<div class="quiz-weiter">
+        <button class="btn btn-primary" onclick="nextQuestion()">
+          ${isLast ? 'Ergebnis anzeigen' : 'Weiter →'}
+        </button>
+       </div>`
+    : '';
+
+  quizList.innerHTML = `
+    <div class="quiz-player">
+      <div class="quiz-player-header">
+        <button class="btn btn-secondary" style="padding:7px 14px;font-size:.8rem" onclick="exitQuiz()">← Zurück</button>
+        <span class="quiz-player-counter">Frage ${quizState.qIndex + 1} / ${total}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="quiz-question-text">${esc(q.question)}</div>
+      <div class="quiz-options">${optionsHtml}</div>
+      ${weiterBtn}
+    </div>`;
+}
+
+function renderQuizDone() {
+  const quiz  = db.quizzes[quizState.quizIndex];
+  const total = quiz.questions.length;
+  const pct   = Math.round((quizState.correct / total) * 100);
+
+  quizList.innerHTML = `
+    <div class="results-card">
+      <div class="results-score">${pct}%</div>
+      <div class="results-label">${quizState.correct} von ${total} Fragen richtig · ${esc(quiz.title || 'Quiz')}</div>
+      <div class="results-actions">
+        <button class="btn btn-secondary" onclick="startQuiz(${quizState.quizIndex})">Nochmal</button>
+        <button class="btn btn-primary"   onclick="exitQuiz()">← Zurück</button>
+      </div>
+    </div>`;
+}
+
 render();
 </script>
 </body>
